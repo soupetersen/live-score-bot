@@ -1,0 +1,20 @@
+export type MatchInsight = {
+  id: number;
+  idChampionship: number;
+  idMatch: number;
+  idGameTime: number;
+  timeInMinutes: number;
+  message: string;
+  color: string;
+  origin: string;
+  createDate: string;
+  idTeam: number;
+  teamLogoUrl: string | null;
+  idRecordType: number;
+  idTemplate: number;
+  linkOdds: string | null;
+  betHouseName: string | null;
+  logoBetHouse: string | null;
+  ODD: number;
+  oddHasValuable: false;
+};
