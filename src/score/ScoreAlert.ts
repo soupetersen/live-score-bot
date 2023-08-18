@@ -1,13 +1,9 @@
-import { sendTelegram } from "../telegram";
-import { postTweet } from "../twitter";
-import { sendWhatsapp } from "../whatsapp";
+import { TweetV2PostTweetResult } from "twitter-api-v2";
 
-export async function sendScoreAlerts(message: string) {
-  Promise.all([
-    await postTweet(message),
-    await sendTelegram(message),
-    await sendWhatsapp(message),
-  ])
-    .then(() => console.log("Mensagem enviada"))
-    .catch((error) => console.log(error));
+import { postTweet } from "../twitter";
+
+export async function sendScoreAlerts(
+  message: string,
+): Promise<TweetV2PostTweetResult | Error> {
+  return await postTweet(message);
 }

@@ -8,32 +8,42 @@ import {
 import { Scores } from "./Scores";
 
 export async function controlScores() {
-  for (const [_, championshipId] of Object.entries(watchedChampionships)) {
+  for (const [championshipName, championshipId] of Object.entries(
+    watchedChampionships,
+  )) {
     const championship = await findChampionship(championshipId);
-    const liveMatches = await findLiveMatches(championship?.data.rodadas);
+    const liveMatches = await findLiveMatches(
+      championshipName,
+      championshipId,
+      championship?.data.rodadas,
+    );
 
     const score = Scores.getInstance();
 
     if (!liveMatches) {
-      console.log("Não há jogos em tempo real");
+      console.log(`Não há jogos do ${championshipName} em tempo real`);
       score.clearChampionshipCache(championshipId);
       continue;
     }
 
-    console.log("championshipId", championshipId);
-    console.log("currentSchedule", liveMatches);
-
-    const updatedMatches = score.updateChampionsipMatches(
+    const updatedMatches = await score.updateChampionsipMatches(
+      championshipName,
       championshipId,
       liveMatches,
     );
 
     if (!updatedMatches) {
-      console.log("Partidas atualizadas, nada para fazer aqui");
+      console.log(
+        `Partidas do ${championshipName} atualizadas, nada para fazer aqui`,
+      );
       continue;
     }
 
-    await score.compareMatchesScores(updatedMatches, liveMatches);
+    await score.compareMatchesScores(
+      championshipName,
+      updatedMatches,
+      liveMatches,
+    );
   }
 }
 
@@ -50,6 +60,8 @@ async function findChampionship(
 }
 
 async function findLiveMatches(
+  championshipName: string,
+  championshipId: number,
   championship: ChampionshipSchedule[] | null | undefined,
 ): Promise<Match[] | null> {
   if (!championship) {
@@ -64,7 +76,32 @@ async function findLiveMatches(
     return null;
   }
 
-  return championship[currentSchedule].partidas.filter(
+  const scores = Scores.getInstance();
+  const cachedMatches = scores.getCacheByChampionshipId(championshipId);
+
+  const liveMatches = championship[currentSchedule].partidas.filter(
     (match) => match.temporeal === true,
   );
+
+  if (liveMatches.length === 0) {
+    return null;
+  }
+
+  const matchesFinished = cachedMatches?.filter((match) => {
+    const matchFound = liveMatches.find((m) => m.id === match.id);
+
+    if (matchFound) {
+      return match.temporeal !== matchFound.temporeal;
+    }
+
+    return false;
+  });
+
+  if (matchesFinished && matchesFinished.length > 0) {
+    console.log("Partidas finalizadas");
+    scores.matchFinished(championshipName, matchesFinished);
+    return null;
+  }
+
+  return liveMatches;
 }

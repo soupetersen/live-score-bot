@@ -1,9 +1,7 @@
 import { CronJob } from "cron";
-import { watchedChampionships } from "./config/watched-championships";
+import { controlScores } from "./score";
 
 import "dotenv/config";
-
-import { controlScores } from "./score";
 
 async function loop() {
   controlScores();
@@ -11,9 +9,6 @@ async function loop() {
 
 loop();
 
-// var job = new CronJob(
-//   '* * * * *',
-//   findMatches
-// );
+const job = new CronJob("* * * * *", loop);
 
-// job.start();
+job.start();

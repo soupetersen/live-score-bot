@@ -1,6 +1,5 @@
 import { Championship } from "../../types/Championships";
 
-
 export const footstatsChampionships: Championship[] = [
   {
     id: 836,
@@ -140,12 +139,12 @@ export const footstatsChampionships: Championship[] = [
   {
     id: 850,
     urlLogo: null,
-    nome: "Brasileirão séria A 2023",
+    nome: "Brasileirão série A 2023",
   },
   {
     id: 851,
     urlLogo: null,
-    nome: "Brasileirão séria B 2023",
+    nome: "Brasileirão série B 2023",
   },
   {
     id: 845,
