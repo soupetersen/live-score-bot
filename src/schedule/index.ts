@@ -38,9 +38,9 @@ export async function findChampionshipScheduleNext24Hours(
             brazilianTeams.includes(match.mandante.nome) ||
             brazilianTeams.includes(match.visitante.nome);
 
-          if (isBrazilianTeam) {
-            return inTime;
-          }
+          if (isBrazilianTeam) return inTime;
+
+          return false;
         }
 
         return inTime;
