@@ -6,8 +6,8 @@
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "dev": "NODE_ENV=dev ts-node-dev --respawn ./src/index.ts",
-    "test": "jest",
-    "test:watch": "jest --watch"
+    "test": "NODE_ENV=test jest",
+    "test:watch": "NODE_ENV=test jest --watch"
   },
   "keywords": [],
   "author": "",
