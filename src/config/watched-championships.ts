@@ -9,3 +9,16 @@ export const watchedChampionships: WatchedChampionships = {
   "Brasileirão Série B 2023": 851,
   "Copa do Brasil 2023": 845,
 } as const;
+
+export const brazilianTeams = [
+  "Internacional",
+  "Flamengo",
+  "Palmeiras",
+  "Fluminense",
+  "Botafogo",
+  "Corinthians",
+  "São Paulo",
+  "Fortaleza",
+  "Atlético-MG",
+  "América-MG ",
+];

@@ -1,6 +1,7 @@
 import { differenceInHours, parse } from "date-fns";
 import { ChampionshipSchedule, Match } from "../types/ChampionshipMatches";
 import { Schedule } from "./Schedule";
+import { brazilianTeams } from "../config/watched-championships";
 
 export async function findChampionshipScheduleNext24Hours(
   championshipId: number,
@@ -28,7 +29,21 @@ export async function findChampionshipScheduleNext24Hours(
         //   timeDifferenceInHours <= 24 && timeDifferenceInHours >= -3,
         // );
 
-        return timeDifferenceInHours <= 24 && timeDifferenceInHours >= -3;
+        const inTime =
+          timeDifferenceInHours <= 24 && timeDifferenceInHours >= -3;
+
+        // check if championship is Libertadores or Sul Americana for return only brazilian teams
+        if (championshipId === 839 || championshipId === 853) {
+          const isBrazilianTeam =
+            brazilianTeams.includes(match.mandante.nome) ||
+            brazilianTeams.includes(match.visitante.nome);
+
+          if (isBrazilianTeam) {
+            return inTime;
+          }
+        }
+
+        return inTime;
       });
 
       if (scheduleNext24Hours.length > 0) {
