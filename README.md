@@ -1,3 +1,3 @@
 <div align="center">
-  Um bot que envia placar das partidas para redes sociais
+  Um bot que envia placar de partidas selecionadas para as redes sociais
 </div>
