@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "tsc --project tsconfig.json",
     "dev": "NODE_ENV=dev ts-node-dev --respawn ./src/index.ts",
     "test": "jest",
     "test:watch": "jest --watch"

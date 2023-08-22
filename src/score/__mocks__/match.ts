@@ -77,3 +77,30 @@ export const updatedMatchesMock: Match[] = [
     id: 2,
   },
 ];
+
+export const finishMatchesMock: Match[] = [
+  {
+    visitante: {
+      id: 284,
+      gols: 0,
+      nome: "Bahia",
+      sigla: "BAH",
+      urlLogo:
+        "https://s.glbimg.com/es/sde/f/equipes/2014/04/14/bahia_60x60.png",
+    },
+    mandante: {
+      id: 285,
+      gols: 0,
+      nome: "Atlético-MG",
+      sigla: "CAM",
+      urlLogo:
+        "https://s.glbimg.com/es/sde/f/equipes/2014/04/14/atletico_mg_60x60.png",
+    },
+    periodoJogo: "2T",
+    idFase: 1,
+    temporeal: true,
+    dataHora: "2021-06-12T23:00:00",
+    scout: true,
+    id: 2,
+  },
+];

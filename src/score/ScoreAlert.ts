@@ -4,6 +4,6 @@ import { postTweet } from "../twitter";
 
 export async function sendScoreAlerts(
   message: string,
-): Promise<TweetV2PostTweetResult | Error> {
+): Promise<TweetV2PostTweetResult | undefined> {
   return await postTweet(message);
 }

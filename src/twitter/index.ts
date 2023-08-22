@@ -9,8 +9,7 @@ export async function postTweet(tweet: string) {
   try {
     return await client.v2.tweet(tweet);
   } catch (error) {
-    console.log("error", error);
-    throw new Error(`Error posting tweet: ${error}`);
+    console.error("error #%d", error);
   }
 }
 
