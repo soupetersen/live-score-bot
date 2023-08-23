@@ -1,10 +1,10 @@
-import { ChampionshipSchedule, Match } from "../types/ChampionshipMatches";
+import { CurrentRound, Match } from "../types/ChampionshipMatches";
 
 export class Schedule {
   private static instance: Schedule;
 
   private schedule: Map<number, Match[]> = new Map();
-  private currentRound: Map<number, number | undefined | null> = new Map();
+  private currentRound: Map<number, CurrentRound> = new Map();
 
   private constructor() {
     if (Schedule.instance) {
@@ -40,11 +40,17 @@ export class Schedule {
     return schedule;
   }
 
-  public setCurrentRound(championshipId: number, round: number) {
-    this.currentRound.set(championshipId, round);
+  public setCurrentRound(
+    championshipId: number,
+    round: { round: number; fase: string },
+  ) {
+    this.currentRound.set(championshipId, {
+      round: round.round,
+      stage: round.fase,
+    });
   }
 
-  public getCurrentRound(championshipId: number): number | undefined | null {
+  public getCurrentRound(championshipId: number): CurrentRound {
     return this.currentRound.get(championshipId);
   }
 

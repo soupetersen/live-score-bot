@@ -3,7 +3,7 @@ import { TwitterApi } from "twitter-api-v2";
 import "dotenv/config";
 
 export async function postTweet(tweet: string) {
-  console.log("POST TWEET", tweet);
+  console.log("POST TWEET: \n", tweet);
 
   const client = await twitterCLient().catch(() => undefined);
 

@@ -10,10 +10,15 @@ type ChampionshipDetails = {
   rodadas: ChampionshipSchedule[] | null;
 };
 
+export type CurrentRound = {
+  round: number | undefined | null;
+  stage: string | undefined | null;
+};
+
 export type ChampionshipSchedule = {
-  fase: string;
-  rodada: number;
-  partidas: Match[];
+  fase: string | null | undefined;
+  rodada: number | null | undefined;
+  partidas: Match[] | undefined;
   rodadaAtual: boolean;
 };
 

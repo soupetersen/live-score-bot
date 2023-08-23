@@ -10,6 +10,12 @@ export const watchedChampionships: WatchedChampionships = {
   "Copa do Brasil 2023": 845,
 } as const;
 
+export const championshipsWithStages = [
+  "Libertadores 2023",
+  "Sul Americana 2023",
+  "Copa do Brasil 2023",
+];
+
 export const brazilianTeams = [
   "Internacional",
   "Flamengo",

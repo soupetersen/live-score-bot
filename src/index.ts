@@ -25,10 +25,13 @@ async function findChampionship() {
       continue;
     }
 
-    const championshipSchedule = await findChampionshipScheduleNext24Hours(
+    await findChampionshipScheduleNext24Hours(
       championshipId,
       championship.data.rodadas,
     );
+
+    const championshipSchedule =
+      schedule.getScheduleByChampionshipId(championshipId);
 
     championshipSchedule?.map((match) => {
       console.log(

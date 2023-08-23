@@ -1,6 +1,13 @@
 import axios from "axios";
-import { watchedChampionships } from "../config/watched-championships";
-import { ChampionshipMatches, Match } from "../types/ChampionshipMatches";
+import {
+  championshipsWithStages,
+  watchedChampionships,
+} from "../config/watched-championships";
+import {
+  ChampionshipMatches,
+  CurrentRound,
+  Match,
+} from "../types/ChampionshipMatches";
 import { Scores } from "./Scores";
 import { Schedule } from "../schedule/Schedule";
 import { sendScoreAlerts } from "./ScoreAlert";
@@ -19,14 +26,17 @@ export async function controlScores() {
       schedule.getScheduleByChampionshipId(championshipId);
 
     const hasSomeMatchStarted = scheduleMatches?.some((match) => {
-      const timeDif = differenceInMinutes(new Date(), new Date(match.dataHora));
-      if (timeDif > DIFFERENCE_IN_MINUTES) return true;
+      const timeDiff = differenceInMinutes(
+        new Date(),
+        new Date(match.dataHora),
+      );
+      if (timeDiff >= DIFFERENCE_IN_MINUTES) return true;
 
       return false;
     });
 
     if (
-      score.getCacheByChampionshipId(championshipId) &&
+      score.getCacheByChampionshipId(championshipId)?.length === 0 ||
       !hasSomeMatchStarted
     ) {
       continue;
@@ -57,8 +67,8 @@ export async function controlScores() {
     }
 
     await updateChampionsipMatches(
-      championshipName,
       championshipId,
+      championshipName,
       liveMatches,
     );
 
@@ -111,8 +121,8 @@ export async function findLiveMatches(
 }
 
 export async function updateChampionsipMatches(
-  championshipName: string,
   championshipId: number,
+  championshipName: string,
   liveMatches: Match[],
 ): Promise<Match[] | undefined> {
   const score = Scores.getInstance();
@@ -121,13 +131,18 @@ export async function updateChampionsipMatches(
   const schedule = Schedule.getInstance();
   const currentRound = schedule.getCurrentRound(championshipId);
 
+  const stepMessage = buildChampionshipMessageByStage(
+    championshipName,
+    currentRound,
+  );
+
   if (!currentCache) {
     if (liveMatches.length === 0) {
       score.setCacheByChampionshipId(championshipId, liveMatches);
       return;
     }
 
-    matchStarted(championshipName, liveMatches, currentRound);
+    matchStarted(championshipName, liveMatches, stepMessage);
     score.setCacheByChampionshipId(championshipId, liveMatches);
     return;
   }
@@ -136,7 +151,7 @@ export async function updateChampionsipMatches(
     championshipName,
     currentCache,
     liveMatches,
-    currentRound,
+    stepMessage,
   );
 
   if (finished && liveMatches.length === 0) {
@@ -151,7 +166,7 @@ export async function updateChampionsipMatches(
   score.setCacheByChampionshipId(championshipId, liveMatches);
 
   if (newMatches.length > 0) {
-    matchStarted(championshipName, newMatches, currentRound);
+    matchStarted(championshipName, newMatches, stepMessage);
   }
 
   return liveMatches;
@@ -182,25 +197,24 @@ export async function compareMatchesScores(
         `\nNovo Placar: ${match.mandante.sigla} ${match.mandante.gols} x ${match.visitante.gols} ${match.visitante.sigla}\n`,
       );
 
+      const stageMessage = buildChampionshipMessageByStage(
+        championshipName,
+        currentRound,
+      );
+
       if (cache?.mandante.gols !== match.mandante.gols) {
         const invalidate = await invalidateScore(
           cache,
           match,
           championshipName,
-          currentRound,
+          stageMessage,
         );
 
         if (invalidate) {
           continue;
         }
 
-        const message = `⚽ GOOL DO ${match.mandante.nome} \n\n ${
-          match.mandante.nome
-        } ${match.mandante.gols} x ${match.visitante.gols} ${
-          match.visitante.nome
-        } \n\n 🏆 ${championshipName} ${
-          currentRound ? `| Rodada ${currentRound}` : ""
-        }`;
+        const message = `⚽ GOOL DO ${match.mandante.nome} \n\n ${match.mandante.nome} ${match.mandante.gols} x ${match.visitante.gols} ${match.visitante.nome} \n\n ${championshipName} ${stageMessage}`;
         await sendScoreAlerts(message);
       }
 
@@ -209,20 +223,14 @@ export async function compareMatchesScores(
           cache,
           match,
           championshipName,
-          currentRound,
+          stageMessage,
         );
 
         if (invalidate) {
           continue;
         }
 
-        const message = `⚽ GOOL DO ${match.visitante.nome} \n\n ${
-          match.visitante.nome
-        } ${match.visitante.gols} x ${match.mandante.gols} ${
-          match.mandante.nome
-        } \n\n 🏆 ${championshipName} ${
-          currentRound ? `| Rodada ${currentRound}` : ""
-        }`;
+        const message = `⚽ GOOL DO ${match.visitante.nome} \n\n ${match.visitante.nome} ${match.visitante.gols} x ${match.mandante.gols} ${match.mandante.nome} \n\n ${championshipName} ${stageMessage}`;
         await sendScoreAlerts(message);
       }
     }
@@ -232,16 +240,13 @@ export async function compareMatchesScores(
 export async function matchStarted(
   championshipName: string,
   matches: Match[],
-  currentRound?: number | null,
+  stageMessage: string,
 ) {
   for (const match of matches) {
     const timeDif = differenceInMinutes(new Date(), new Date(match.dataHora));
     if (timeDif > DIFFERENCE_IN_MINUTES) continue;
-    const message = `A partida entre ${match.mandante.nome} x ${
-      match.visitante.nome
-    } começou! \n\n 🏆 ${championshipName} ${
-      currentRound ? `| Rodada ${currentRound}` : ""
-    }`;
+
+    const message = `A partida entre ${match.mandante.nome} x ${match.visitante.nome} começou! \n\n ${stageMessage}`;
     await sendScoreAlerts(message);
   }
 }
@@ -250,7 +255,7 @@ export async function matchFinished(
   championshipName: string,
   cachedMatches: Match[],
   liveMatches: Match[],
-  currentRound?: number | null,
+  stageMessage: string,
 ): Promise<boolean> {
   const matchesFinished = cachedMatches?.filter((match) => {
     const matchFound = liveMatches?.find((m) => m.id === match.id);
@@ -265,13 +270,7 @@ export async function matchFinished(
   }
 
   matchesFinished.forEach(async (match) => {
-    const message = `Partida finalizada ${match.mandante.nome} ${
-      match.mandante.gols
-    } x ${match.visitante.gols} ${
-      match.visitante.nome
-    } \n\n 🏆 ${championshipName} ${
-      currentRound ? `| Rodada ${currentRound}` : ""
-    }`;
+    const message = `Partida finalizada ${match.mandante.nome} ${match.mandante.gols} x ${match.visitante.gols} ${match.visitante.nome} \n\n ${stageMessage}`;
     await sendScoreAlerts(message);
   });
 
@@ -282,33 +281,34 @@ export async function invalidateScore(
   cache: Match,
   match: Match,
   championshipName: string,
-  currentRound: number | null | undefined,
+  stepMessage: string,
 ): Promise<boolean> {
   if (cache.mandante.gols > match?.mandante.gols) {
     console.log("GOL ANULADO");
-    const message = `❌ Gol anulado do ${match.mandante.nome} \n\n ${
-      match.mandante.nome
-    } ${match.mandante.gols} x ${match.visitante.gols} ${
-      match.visitante.nome
-    } \n\n 🏆 ${championshipName} ${
-      currentRound ? `| Rodada ${currentRound}` : ""
-    }`;
+    const message = `❌ Gol anulado do ${match.mandante.nome} \n\n ${match.mandante.nome} ${match.mandante.gols} x ${match.visitante.gols} ${match.visitante.nome} \n\n ${stepMessage}`;
     await sendScoreAlerts(message);
     return true;
   }
 
   if (cache.visitante.gols > match.visitante.gols) {
     console.log("GOL ANULADO");
-    const message = `❌ Gol anulado do ${match.visitante.nome} \n\n ${
-      match.visitante.nome
-    } ${match.visitante.gols} x ${match.mandante.gols} ${
-      match.mandante.nome
-    } \n\n 🏆 ${championshipName} ${
-      currentRound ? `| Rodada ${currentRound}` : ""
-    }`;
+    const message = `❌ Gol anulado do ${match.visitante.nome} \n\n ${match.visitante.nome} ${match.visitante.gols} x ${match.mandante.gols} ${match.mandante.nome} \n\n ${stepMessage}`;
     await sendScoreAlerts(message);
     return true;
   }
 
   return false;
+}
+
+function buildChampionshipMessageByStage(
+  championshipName: string,
+  currentRound?: CurrentRound,
+): string {
+  if (championshipsWithStages[championshipName]) {
+    return `🏆 ${championshipName} | ${currentRound?.stage}`;
+  }
+
+  return `🏆 ${championshipName} ${
+    currentRound?.round ? `| Rodada ${currentRound?.round}` : ""
+  }`;
 }
