@@ -304,7 +304,7 @@ function buildChampionshipMessageByStage(
   championshipName: string,
   currentRound?: CurrentRound,
 ): string {
-  if (championshipsWithStages[championshipName]) {
+  if (championshipsWithStages.includes(championshipName)) {
     return `🏆 ${championshipName} | ${currentRound?.stage}`;
   }
 

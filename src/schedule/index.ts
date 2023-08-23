@@ -55,7 +55,7 @@ export async function findChampionshipScheduleNext24Hours(
 
       schedule.setCurrentRound(championshipId, {
         round: rodada.rodada,
-        fase: rodada.fase,
+        stage: rodada.fase,
       });
     }
   });

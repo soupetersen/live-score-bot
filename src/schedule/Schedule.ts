@@ -40,13 +40,10 @@ export class Schedule {
     return schedule;
   }
 
-  public setCurrentRound(
-    championshipId: number,
-    round: { round: number; fase: string },
-  ) {
+  public setCurrentRound(championshipId: number, round: CurrentRound) {
     this.currentRound.set(championshipId, {
       round: round.round,
-      stage: round.fase,
+      stage: round.stage,
     });
   }
 
