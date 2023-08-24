@@ -214,7 +214,7 @@ export async function compareMatchesScores(
           continue;
         }
 
-        const message = `⚽ GOOL DO ${match.mandante.nome} \n\n ${match.mandante.nome} ${match.mandante.gols} x ${match.visitante.gols} ${match.visitante.nome} \n\n ${championshipName} ${stageMessage}`;
+        const message = `⚽ GOOL DO ${match.mandante.nome} \n\n ${match.mandante.nome} ${match.mandante.gols} x ${match.visitante.gols} ${match.visitante.nome} \n\n ${stageMessage}`;
         await sendScoreAlerts(message);
       }
 
@@ -230,7 +230,7 @@ export async function compareMatchesScores(
           continue;
         }
 
-        const message = `⚽ GOOL DO ${match.visitante.nome} \n\n ${match.visitante.nome} ${match.visitante.gols} x ${match.mandante.gols} ${match.mandante.nome} \n\n ${championshipName} ${stageMessage}`;
+        const message = `⚽ GOOL DO ${match.visitante.nome} \n\n ${match.visitante.nome} ${match.visitante.gols} x ${match.mandante.gols} ${match.mandante.nome} \n\n ${stageMessage}`;
         await sendScoreAlerts(message);
       }
     }
