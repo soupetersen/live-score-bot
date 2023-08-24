@@ -32,6 +32,10 @@ export async function controlScores() {
         new Date(),
         new Date(match.dataHora),
       );
+      console.log(
+        `\nDiferença de tempo entre a partida ${match.mandante.nome} x ${match.visitante.nome} e o horário atual: ${timeDiff} minutos`,
+      );
+
       if (timeDiff >= DIFFERENCE_IN_MINUTES && timeDiff < MATCH_DURATION) {
         return true;
       } else {
