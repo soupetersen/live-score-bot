@@ -14,6 +14,7 @@ import { sendScoreAlerts } from "./ScoreAlert";
 import { differenceInMinutes } from "date-fns";
 
 const DIFFERENCE_IN_MINUTES = 2;
+const MATCH_DURATION = 160;
 
 export async function controlScores() {
   for (const [championshipName, championshipId] of Object.entries(
@@ -25,20 +26,23 @@ export async function controlScores() {
     const scheduleMatches =
       schedule.getScheduleByChampionshipId(championshipId);
 
+    //CHECK IF SOME MATCH STARTED AND FINISHED TO REMOVE FROM CACHE
     const hasSomeMatchStarted = scheduleMatches?.some((match) => {
       const timeDiff = differenceInMinutes(
         new Date(),
         new Date(match.dataHora),
       );
-      if (timeDiff >= DIFFERENCE_IN_MINUTES) return true;
+      if (timeDiff >= DIFFERENCE_IN_MINUTES && timeDiff < MATCH_DURATION) {
+        return true;
+      } else {
+        score.removeMatchByChampionshipId(championshipId, match.id);
+        schedule.removeMatchByChampionshipId(championshipId, match.id);
+      }
 
       return false;
     });
 
-    if (
-      score.getCacheByChampionshipId(championshipId)?.length === 0 ||
-      !hasSomeMatchStarted
-    ) {
+    if (!hasSomeMatchStarted) {
       continue;
     }
 
@@ -142,17 +146,12 @@ export async function updateChampionsipMatches(
       return;
     }
 
-    matchStarted(championshipName, liveMatches, stepMessage);
+    matchStarted(liveMatches, stepMessage);
     score.setCacheByChampionshipId(championshipId, liveMatches);
     return;
   }
 
-  const finished = await matchFinished(
-    championshipName,
-    currentCache,
-    liveMatches,
-    stepMessage,
-  );
+  const finished = await matchFinished(currentCache, liveMatches, stepMessage);
 
   if (finished && liveMatches.length === 0) {
     score.clearChampionshipCache(championshipId);
@@ -166,7 +165,7 @@ export async function updateChampionsipMatches(
   score.setCacheByChampionshipId(championshipId, liveMatches);
 
   if (newMatches.length > 0) {
-    matchStarted(championshipName, newMatches, stepMessage);
+    matchStarted(newMatches, stepMessage);
   }
 
   return liveMatches;
@@ -203,12 +202,7 @@ export async function compareMatchesScores(
       );
 
       if (cache?.mandante.gols !== match.mandante.gols) {
-        const invalidate = await invalidateScore(
-          cache,
-          match,
-          championshipName,
-          stageMessage,
-        );
+        const invalidate = await invalidateScore(cache, match, stageMessage);
 
         if (invalidate) {
           continue;
@@ -219,12 +213,7 @@ export async function compareMatchesScores(
       }
 
       if (cache?.visitante.gols !== match.visitante.gols) {
-        const invalidate = await invalidateScore(
-          cache,
-          match,
-          championshipName,
-          stageMessage,
-        );
+        const invalidate = await invalidateScore(cache, match, stageMessage);
 
         if (invalidate) {
           continue;
@@ -237,11 +226,7 @@ export async function compareMatchesScores(
   }
 }
 
-export async function matchStarted(
-  championshipName: string,
-  matches: Match[],
-  stageMessage: string,
-) {
+export async function matchStarted(matches: Match[], stageMessage: string) {
   for (const match of matches) {
     const timeDif = differenceInMinutes(new Date(), new Date(match.dataHora));
     if (timeDif > DIFFERENCE_IN_MINUTES) continue;
@@ -252,7 +237,6 @@ export async function matchStarted(
 }
 
 export async function matchFinished(
-  championshipName: string,
   cachedMatches: Match[],
   liveMatches: Match[],
   stageMessage: string,
@@ -280,7 +264,6 @@ export async function matchFinished(
 export async function invalidateScore(
   cache: Match,
   match: Match,
-  championshipName: string,
   stepMessage: string,
 ): Promise<boolean> {
   if (cache.mandante.gols > match?.mandante.gols) {

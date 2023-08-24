@@ -37,6 +37,18 @@ export class Scores {
     return match;
   }
 
+  public removeMatchByChampionshipId(championshipId: number, matchId: number) {
+    const cache = this.getCacheByChampionshipId(championshipId);
+
+    if (!cache) {
+      return;
+    }
+
+    const newCache = cache.filter((match) => match.id !== matchId);
+
+    this.setCacheByChampionshipId(championshipId, newCache);
+  }
+
   public clearChampionshipCache(championshipId: number): void {
     if (this.cache.size === 0) {
       return;

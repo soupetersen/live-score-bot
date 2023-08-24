@@ -51,6 +51,18 @@ export class Schedule {
     return this.currentRound.get(championshipId);
   }
 
+  public removeMatchByChampionshipId(championshipId: number, matchId: number) {
+    const schedule = this.getScheduleByChampionshipId(championshipId);
+
+    if (!schedule) {
+      return;
+    }
+
+    const newCache = schedule.filter((match) => match.id !== matchId);
+
+    this.setScheduleByChampionshipId(championshipId, newCache);
+  }
+
   public updateMatchByChampionshipId(
     championshipId: number,
     match: Match,
