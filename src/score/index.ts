@@ -33,10 +33,13 @@ export async function controlScores() {
         new Date(match.dataHora),
       );
 
+      console.log(
+        `\nDiferença de tempo entre a partida ${match.mandante.nome} x ${match.visitante.nome} e o horário atual: ${timeDiff} minutos`,
+      );
+
       if (timeDiff >= DIFFERENCE_IN_MINUTES && timeDiff < MATCH_DURATION) {
         return true;
       } else {
-        score.removeMatchByChampionshipId(championshipId, match.id);
         schedule.removeMatchByChampionshipId(championshipId, match.id);
       }
 
@@ -156,6 +159,7 @@ export async function updateChampionsipMatches(
 
   if (finished && liveMatches.length === 0) {
     score.clearChampionshipCache(championshipId);
+    return;
   }
 
   const currentCacheIds = currentCache.map((match) => match.id);
@@ -167,9 +171,8 @@ export async function updateChampionsipMatches(
 
   if (newMatches.length > 0) {
     matchStarted(newMatches, stepMessage);
+    return;
   }
-
-  return liveMatches;
 }
 
 export async function compareMatchesScores(
