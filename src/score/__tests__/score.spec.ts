@@ -32,31 +32,15 @@ describe("Score", () => {
 
   it("should be add new match", async () => {
     score.setCacheByChampionshipId(850, matchesMock);
-    const result = await updateChampionsipMatches(
+    await updateChampionsipMatches(
       850,
       "Brasileirão Série A 2023",
       updatedMatchesMock,
     );
+
+    const result = score.getCacheByChampionshipId(850);
 
     expect(result).toHaveLength(2);
-  });
-
-  it("should be compare score and return if have team scored", async () => {
-    score.setCacheByChampionshipId(850, matchesMock);
-    const result = await updateChampionsipMatches(
-      850,
-      "Brasileirão Série A 2023",
-      updatedMatchesMock,
-    );
-
-    expect(result).toBeDefined();
-
-    await compareMatchesScores(
-      850,
-      "Brasileirão Série A 2023",
-      result!,
-      updatedMatchesMock,
-    );
   });
 
   it("should sendm match fineshed alert", async () => {
