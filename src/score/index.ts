@@ -23,8 +23,7 @@ export async function controlScores() {
     const score = Scores.getInstance();
     const schedule = Schedule.getInstance();
 
-    const scheduleMatches =
-      schedule.getScheduleByChampionshipId(championshipId);
+    let scheduleMatches = schedule.getScheduleByChampionshipId(championshipId);
 
     //CHECK IF SOME MATCH STARTED AND FINISHED TO REMOVE FROM CACHE
     const hasSomeMatchStarted = scheduleMatches?.some((match) => {
@@ -33,14 +32,14 @@ export async function controlScores() {
         new Date(match.dataHora),
       );
 
-      console.log(
-        `\nDiferença de tempo entre a partida ${match.mandante.nome} x ${match.visitante.nome} e o horário atual: ${timeDiff} minutos`,
-      );
-
       if (timeDiff >= DIFFERENCE_IN_MINUTES && timeDiff < MATCH_DURATION) {
         return true;
-      } else {
-        schedule.removeMatchByChampionshipId(championshipId, match.id);
+      } else if (match.periodoJogo === "Final") {
+        score.removeMatchByChampionshipId(championshipId, match.id);
+        scheduleMatches = schedule.removeMatchByChampionshipId(
+          championshipId,
+          match.id,
+        );
       }
 
       return false;
@@ -104,9 +103,9 @@ export async function findChampionshipById(
 export async function findLiveMatches(
   championshipId: number,
   schedule: Schedule,
-  matches: Match[] | null | undefined,
+  scheduleMatches: Match[] | null | undefined,
 ): Promise<Match[] | []> {
-  if (!matches || matches.length === 0) {
+  if (!scheduleMatches || scheduleMatches.length === 0) {
     return [];
   }
 
@@ -116,7 +115,7 @@ export async function findLiveMatches(
 
   championship?.data.rodadas?.forEach((round) => {
     round.partidas.forEach((liveData) => {
-      const match = matches.find((ma) => ma.id === liveData.id);
+      const match = scheduleMatches.find((ma) => ma.id === liveData.id);
 
       if (match && liveData.temporeal) {
         schedule.updateMatchByChampionshipId(championshipId, liveData);

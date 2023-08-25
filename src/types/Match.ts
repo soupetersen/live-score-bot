@@ -5,3 +5,11 @@ export enum MatchStatus {
   FIRST_HALF = "FIRST_HALF",
   SECOND_HALF = "SECOND_HALF",
 }
+
+export enum ApiMatchStatus {
+  Final = "Final",
+  STARTED = "STARTED",
+  NOT_STARTED = "NOT_STARTED",
+  FIRST_HALF = "FIRST_HALF",
+  SECOND_HALF = "SECOND_HALF",
+}
