@@ -1,6 +1,6 @@
 <div align="left">
 
- Uma aplicação que envia para o <a href="https://twitter.com/Br_Gols">@Br_gols</a> (no momento) o placar das partidas de times brasileiros dos seguintes campeonatos:
+ Uma aplicação que envia para o <a href="https://twitter.com/Br_Gols" target="_blank">@Br_gols</a> (no momento) o placar das partidas de times brasileiros dos seguintes campeonatos:
 
  
 </br>
