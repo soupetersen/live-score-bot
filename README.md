@@ -1,6 +1,7 @@
 <div align="left">
 
- Uma aplicação que envia para o twitter (no momento) o placar das partidas de times brasileiros dos seguintes campeonatos:
+ Uma aplicação que envia para o <a href="https://twitter.com/Br_Gols">@Br_gols</a> (no momento) o placar das partidas de times brasileiros dos seguintes campeonatos:
+
  
 </br>
 
@@ -13,4 +14,5 @@
 *  Brasileirão Série B 2023
   
 *  Copa do Brasil 2023
+
 </div>
