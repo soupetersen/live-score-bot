@@ -167,7 +167,17 @@ export async function updateChampionsipMatches(
   );
 
   if (newMatches.length > 0) {
-    liveMatches = await matchStarted(championshipId, newMatches, stepMessage);
+    const updatedNewMatches = await matchStarted(
+      championshipId,
+      newMatches,
+      stepMessage,
+    );
+    updatedNewMatches.forEach((match) => {
+      const index = liveMatches.findIndex((m) => m.id === match.id);
+      if (index === -1) {
+        liveMatches[index] = match;
+      }
+    });
   }
 
   score.setCacheByChampionshipId(championshipId, liveMatches);
