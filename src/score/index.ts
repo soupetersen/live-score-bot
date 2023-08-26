@@ -32,7 +32,7 @@ export async function controlScores() {
         new Date(match.dataHora),
       );
 
-      if (timeDiff >= DIFFERENCE_IN_MINUTES && timeDiff < MATCH_DURATION) {
+      if (new Date() >= new Date(match.dataHora) && timeDiff < MATCH_DURATION) {
         return true;
       } else if (match.periodoJogo === "Final") {
         score.removeMatchByChampionshipId(championshipId, match.id);
@@ -145,11 +145,11 @@ export async function updateChampionsipMatches(
 
   if (!currentCache) {
     if (liveMatches.length === 0) {
-      score.setCacheByChampionshipId(championshipId, liveMatches);
+      score.clearChampionshipCache(championshipId);
       return;
     }
 
-    matchStarted(liveMatches, stepMessage);
+    liveMatches = await matchStarted(championshipId, liveMatches, stepMessage);
     score.setCacheByChampionshipId(championshipId, liveMatches);
     return;
   }
@@ -166,12 +166,11 @@ export async function updateChampionsipMatches(
     (match) => !currentCacheIds.includes(match.id),
   );
 
-  score.setCacheByChampionshipId(championshipId, liveMatches);
-
   if (newMatches.length > 0) {
-    matchStarted(newMatches, stepMessage);
-    return;
+    liveMatches = await matchStarted(championshipId, newMatches, stepMessage);
   }
+
+  score.setCacheByChampionshipId(championshipId, liveMatches);
 }
 
 export async function compareMatchesScores(
@@ -229,14 +228,32 @@ export async function compareMatchesScores(
   }
 }
 
-export async function matchStarted(matches: Match[], stageMessage: string) {
-  for (const match of matches) {
-    const timeDif = differenceInMinutes(new Date(), new Date(match.dataHora));
-    if (timeDif > DIFFERENCE_IN_MINUTES) continue;
+export async function matchStarted(
+  championshipId: number,
+  matches: Match[],
+  stageMessage: string,
+): Promise<Match[]> {
+  const score = Scores.getInstance();
+
+  matches.forEach(async (match) => {
+    if (new Date(match.dataHora) < new Date()) return;
+
+    const cacheMatch = score.getMatchByChampionshipId(championshipId, match.id);
+
+    if (cacheMatch) {
+      return;
+    }
+
+    if (match.mandante.gols > 0 || match.visitante.gols > 0) {
+      match.mandante.gols = 0;
+      match.visitante.gols = 0;
+    }
 
     const message = `A partida entre ${match.mandante.nome} x ${match.visitante.nome} começou! \n\n ${stageMessage}`;
     await sendScoreAlerts(message);
-  }
+  });
+
+  return matches;
 }
 
 export async function matchFinished(

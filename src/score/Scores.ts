@@ -63,4 +63,14 @@ export class Scores {
       this.cache.delete(championshipId);
     }
   }
+
+  public getMatchByChampionshipId(championshipId: number, matchId: number) {
+    const cache = this.getCacheByChampionshipId(championshipId);
+
+    if (!cache) {
+      return;
+    }
+
+    return cache.find((match) => match.id === matchId);
+  }
 }

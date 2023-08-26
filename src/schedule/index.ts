@@ -22,7 +22,7 @@ export async function findChampionshipScheduleNext24Hours(
       }
 
       const parsedTime1 = new Date(match.dataHora);
-      const now = Date.now();
+      const now = new Date();
 
       const timeDifferenceInHours = differenceInHours(parsedTime1, now);
 
