@@ -246,7 +246,7 @@ export async function matchStarted(
   const score = Scores.getInstance();
 
   matches.forEach(async (match) => {
-    if (new Date(match.dataHora) < new Date()) return;
+    if (new Date(match.dataHora) > new Date()) return;
 
     const cacheMatch = score.getMatchByChampionshipId(championshipId, match.id);
 
