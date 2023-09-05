@@ -213,25 +213,22 @@ export async function compareMatchesScores(
         currentRound,
       );
 
-      if (cache?.mandante.gols !== match.mandante.gols) {
+      if (
+        cache?.mandante.gols !== match.mandante.gols ||
+        cache?.visitante.gols !== match.visitante.gols
+      ) {
         const invalidate = await invalidateScore(cache, match, stageMessage);
 
         if (invalidate) {
           continue;
         }
 
-        const message = `⚽ GOOL DO ${match.mandante.nome} \n\n ${match.mandante.nome} ${match.mandante.gols} x ${match.visitante.gols} ${match.visitante.nome} \n\n ${stageMessage}`;
-        await sendScoreAlerts(message);
-      }
+        const teamGolName =
+          cache?.mandante.gols !== match.mandante.gols
+            ? match.mandante.nome
+            : match.visitante.nome;
 
-      if (cache?.visitante.gols !== match.visitante.gols) {
-        const invalidate = await invalidateScore(cache, match, stageMessage);
-
-        if (invalidate) {
-          continue;
-        }
-
-        const message = `⚽ GOOL DO ${match.visitante.nome} \n\n ${match.visitante.nome} ${match.visitante.gols} x ${match.mandante.gols} ${match.mandante.nome} \n\n ${stageMessage}`;
+        const message = `⚽ GOOL DO ${teamGolName} \n\n ${match.mandante.nome} ${match.mandante.gols} x ${match.visitante.gols} ${match.visitante.nome} \n\n ${stageMessage}`;
         await sendScoreAlerts(message);
       }
     }
@@ -296,16 +293,18 @@ export async function invalidateScore(
   match: Match,
   stepMessage: string,
 ): Promise<boolean> {
-  if (cache.mandante.gols > match?.mandante.gols) {
+  if (
+    cache.mandante.gols > match?.mandante.gols ||
+    cache.visitante.gols > match.visitante.gols
+  ) {
     console.log("GOL ANULADO");
-    const message = `❌ Gol anulado do ${match.mandante.nome} \n\n ${match.mandante.nome} ${match.mandante.gols} x ${match.visitante.gols} ${match.visitante.nome} \n\n ${stepMessage}`;
-    await sendScoreAlerts(message);
-    return true;
-  }
 
-  if (cache.visitante.gols > match.visitante.gols) {
-    console.log("GOL ANULADO");
-    const message = `❌ Gol anulado do ${match.visitante.nome} \n\n ${match.visitante.nome} ${match.visitante.gols} x ${match.mandante.gols} ${match.mandante.nome} \n\n ${stepMessage}`;
+    const teamInvalidationName =
+      cache.mandante.gols > match?.mandante.gols
+        ? match.mandante.nome
+        : match.visitante.nome;
+
+    const message = `❌ Gol anulado do ${teamInvalidationName} \n\n ${match.mandante.nome} ${match.mandante.gols} x ${match.visitante.gols} ${match.visitante.nome} \n\n ${stepMessage}`;
     await sendScoreAlerts(message);
     return true;
   }
