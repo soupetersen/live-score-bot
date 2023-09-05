@@ -40,7 +40,7 @@ describe("Score", () => {
 
     const result = score.getCacheByChampionshipId(850);
 
-    expect(result).toHaveLength(2);
+    expect(result).toHaveLength(updatedMatchesMock.length);
   });
 
   it("should sendm match fineshed alert", async () => {
@@ -50,6 +50,17 @@ describe("Score", () => {
       850,
       "Brasileirão Série A 2023",
       finishMatchesMock,
+    );
+  });
+
+  it("should alert when a match have a goal", async () => {
+    score.setCacheByChampionshipId(850, matchesMock);
+
+    await compareMatchesScores(
+      850,
+      "Brasileirão Série A 2023",
+      matchesMock,
+      updatedMatchesMock,
     );
   });
 });
