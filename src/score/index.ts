@@ -228,7 +228,7 @@ export async function compareMatchesScores(
             ? match.mandante.nome
             : match.visitante.nome;
 
-        const message = `⚽ GOOL DO ${teamGolName} \n\n ${match.mandante.nome} ${match.mandante.gols} x ${match.visitante.gols} ${match.visitante.nome} \n\n ${stageMessage}`;
+        const message = `⚽ GOOOL DO ${teamGolName} \n\n ${match.mandante.nome} ${match.mandante.gols} x ${match.visitante.gols} ${match.visitante.nome} \n\n ${stageMessage}`;
         await sendScoreAlerts(message);
       }
     }
@@ -321,6 +321,6 @@ function buildChampionshipMessageByStage(
   }
 
   return `🏆 ${championshipName} ${
-    currentRound?.round ? `| Rodada ${currentRound?.round}` : ""
+    currentRound?.round ? `| ${currentRound?.round}ª rodada` : ""
   }`;
 }
