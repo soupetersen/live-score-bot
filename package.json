@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc --project tsconfig.json",
+    "build": "NODE_ENV=prod tsc --project tsconfig.json",
     "dev": "NODE_ENV=dev ts-node-dev --respawn ./src/index.ts",
     "test": "NODE_ENV=test jest",
     "test:watch": "NODE_ENV=test jest --watch"
@@ -14,7 +14,6 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^1.4.0",
-    "cron": "^2.4.1",
     "date-fns": "^2.30.0",
     "dotenv": "^16.3.1",
     "twitter-api-v2": "^1.15.1"

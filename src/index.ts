@@ -1,4 +1,3 @@
-import { CronJob } from "cron";
 import { controlScores, findChampionshipById } from "./score";
 
 import "dotenv/config";
@@ -8,12 +7,14 @@ import { findChampionshipScheduleNext24Hours } from "./schedule";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
+const INTERVAL_30_SECONDS = 30 * 1000;
+const INTERVAL_24_HOURS = 24 * 60 * 60 * 1000;
+
 async function loopScore() {
   controlScores();
 }
 
 async function findChampionship() {
-  console.log("Buscando campeonatos...");
   const schedule = Schedule.getInstance();
 
   for (const [championshipName, championshipId] of Object.entries(
@@ -58,8 +59,5 @@ async function findChampionship() {
 
 findChampionship();
 
-const scheduleJob = new CronJob("0 */24 * * *", findChampionship);
-const scoreJob = new CronJob("* * * * *", loopScore);
-
-scheduleJob.start();
-scoreJob.start();
+setInterval(findChampionship, INTERVAL_24_HOURS);
+setInterval(loopScore, INTERVAL_30_SECONDS);
