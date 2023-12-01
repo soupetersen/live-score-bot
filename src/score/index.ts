@@ -154,7 +154,12 @@ export async function updateChampionsipMatches(
     return;
   }
 
-  const finished = await matchFinished(currentCache, liveMatches, stepMessage);
+  const finished = await matchFinished(
+    championshipId,
+    currentCache,
+    liveMatches,
+    stepMessage,
+  );
 
   if (finished && liveMatches.length === 0) {
     score.clearChampionshipCache(championshipId);
@@ -181,6 +186,36 @@ export async function updateChampionsipMatches(
   }
 
   score.setCacheByChampionshipId(championshipId, liveMatches);
+}
+
+export async function matchStarted(
+  championshipId: number,
+  matches: Match[],
+  stageMessage: string,
+): Promise<Match[]> {
+  const score = Scores.getInstance();
+
+  matches.forEach(async (match) => {
+    if (new Date(match.dataHora) > new Date()) return;
+
+    const cacheMatch = score.getMatchByChampionshipId(championshipId, match.id);
+
+    if (cacheMatch) {
+      return;
+    }
+
+    if (match.mandante.gols > 0 || match.visitante.gols > 0) {
+      match.mandante.gols = 0;
+      match.visitante.gols = 0;
+    }
+
+    const hashtags = buildHashtags(championshipId, match);
+
+    const message = `A partida entre ${match.mandante.nome} x ${match.visitante.nome} começou! \n\n ${stageMessage} \n\n ${hashtags}`;
+    await sendScoreAlerts(message);
+  });
+
+  return matches;
 }
 
 export async function compareMatchesScores(
@@ -217,7 +252,12 @@ export async function compareMatchesScores(
         cache?.mandante.gols !== match.mandante.gols ||
         cache?.visitante.gols !== match.visitante.gols
       ) {
-        const invalidate = await invalidateScore(cache, match, stageMessage);
+        const invalidate = await invalidateScore(
+          championshipId,
+          cache,
+          match,
+          stageMessage,
+        );
 
         if (invalidate) {
           continue;
@@ -228,42 +268,44 @@ export async function compareMatchesScores(
             ? match.mandante.nome
             : match.visitante.nome;
 
-        const message = `⚽ GOOOL DO ${teamGolName} \n\n ${match.mandante.nome} ${match.mandante.gols} x ${match.visitante.gols} ${match.visitante.nome} \n\n ${stageMessage}`;
+        const hashtags = buildHashtags(championshipId, match);
+
+        const message = `⚽ GOOOL DO ${teamGolName} \n\n ${match.mandante.nome} ${match.mandante.gols} x ${match.visitante.gols} ${match.visitante.nome} \n\n ${stageMessage} \n\n ${hashtags}`;
         await sendScoreAlerts(message);
       }
     }
   }
 }
 
-export async function matchStarted(
-  championshipId: number,
-  matches: Match[],
-  stageMessage: string,
-): Promise<Match[]> {
-  const score = Scores.getInstance();
+export async function invalidateScore(
+  championshipId,
+  cache: Match,
+  match: Match,
+  stepMessage: string,
+): Promise<boolean> {
+  if (
+    cache.mandante.gols > match?.mandante.gols ||
+    cache.visitante.gols > match.visitante.gols
+  ) {
+    console.log("GOL ANULADO");
 
-  matches.forEach(async (match) => {
-    if (new Date(match.dataHora) > new Date()) return;
+    const hashtags = buildHashtags(championshipId, match);
 
-    const cacheMatch = score.getMatchByChampionshipId(championshipId, match.id);
+    const teamInvalidationName =
+      cache.mandante.gols > match?.mandante.gols
+        ? match.mandante.nome
+        : match.visitante.nome;
 
-    if (cacheMatch) {
-      return;
-    }
-
-    if (match.mandante.gols > 0 || match.visitante.gols > 0) {
-      match.mandante.gols = 0;
-      match.visitante.gols = 0;
-    }
-
-    const message = `A partida entre ${match.mandante.nome} x ${match.visitante.nome} começou! \n\n ${stageMessage}`;
+    const message = `❌ Gol anulado do ${teamInvalidationName} \n\n ${match.mandante.nome} ${match.mandante.gols} x ${match.visitante.gols} ${match.visitante.nome} \n\n ${stepMessage} \n\n ${hashtags}`;
     await sendScoreAlerts(message);
-  });
+    return true;
+  }
 
-  return matches;
+  return false;
 }
 
 export async function matchFinished(
+  championshipId: number,
   cachedMatches: Match[],
   liveMatches: Match[],
   stageMessage: string,
@@ -281,35 +323,12 @@ export async function matchFinished(
   }
 
   matchesFinished.forEach(async (match) => {
-    const message = `Partida finalizada ${match.mandante.nome} ${match.mandante.gols} x ${match.visitante.gols} ${match.visitante.nome} \n\n ${stageMessage}`;
+    const hashtags = buildHashtags(championshipId, match);
+    const message = `Partida finalizada ${match.mandante.nome} ${match.mandante.gols} x ${match.visitante.gols} ${match.visitante.nome} \n\n ${stageMessage} \n\n  ${hashtags}`;
     await sendScoreAlerts(message);
   });
 
   return true;
-}
-
-export async function invalidateScore(
-  cache: Match,
-  match: Match,
-  stepMessage: string,
-): Promise<boolean> {
-  if (
-    cache.mandante.gols > match?.mandante.gols ||
-    cache.visitante.gols > match.visitante.gols
-  ) {
-    console.log("GOL ANULADO");
-
-    const teamInvalidationName =
-      cache.mandante.gols > match?.mandante.gols
-        ? match.mandante.nome
-        : match.visitante.nome;
-
-    const message = `❌ Gol anulado do ${teamInvalidationName} \n\n ${match.mandante.nome} ${match.mandante.gols} x ${match.visitante.gols} ${match.visitante.nome} \n\n ${stepMessage}`;
-    await sendScoreAlerts(message);
-    return true;
-  }
-
-  return false;
 }
 
 function buildChampionshipMessageByStage(
@@ -323,4 +342,21 @@ function buildChampionshipMessageByStage(
   return `🏆 ${championshipName} ${
     currentRound?.round ? `| ${currentRound?.round}ª rodada` : ""
   }`;
+}
+
+function buildHashtags(championshipId: number, match: Match): string {
+  switch (championshipId) {
+    case 839:
+      return `#Libertadores2024 #${match.mandante.sigla}x${match.visitante.sigla}`;
+    case 853:
+      return `#Sulamericana2024 #${match.mandante.sigla}x${match.visitante.sigla}`;
+    case 850:
+      return `#Brasileirão2023 #${match.mandante.sigla}x${match.visitante.sigla}`;
+    case 851:
+      return `#Brasileirão2023 #${match.mandante.sigla}x${match.visitante.sigla}`;
+    case 845:
+      return `#CopaDoBrasil2024 #${match.mandante.sigla}x${match.visitante.sigla}`;
+    default:
+      return "";
+  }
 }
